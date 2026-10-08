@@ -26,6 +26,54 @@ function JsonView({ value }: { value: unknown }) {
   );
 }
 
+function ExecutionSummary() {
+  const nodes = useEditorStore((s) => s.nodes);
+  const statuses = useEditorStore((s) => s.nodeStatuses);
+  const results = useEditorStore((s) => s.nodeResults);
+  const executed = nodes.filter((node) => statuses[node.id] && statuses[node.id] !== "IDLE");
+  const successful = executed.filter((node) => statuses[node.id] === "SUCCESS");
+  const failed = executed.filter((node) => statuses[node.id] === "ERROR");
+  const finalOutput = nodes.find((node) => node.type === "output" && statuses[node.id] === "SUCCESS");
+
+  if (executed.length === 0) return null;
+
+  return (
+    <section className="space-y-2 border-b border-border px-4 py-3" aria-label="Última ejecución">
+      <div className="flex items-center justify-between gap-2">
+        <h3 className="text-xs font-semibold">Última ejecución</h3>
+        <span className={failed.length ? "text-[11px] font-medium text-red-500" : "text-[11px] font-medium text-emerald-600 dark:text-emerald-400"}>
+          {failed.length ? "Con errores" : "Correcta"}
+        </span>
+      </div>
+      <p className="text-[11px] text-muted-foreground">
+        {successful.length} correcto{successful.length === 1 ? "" : "s"} · {executed.filter((node) => statuses[node.id] === "SKIPPED").length} omitido{executed.filter((node) => statuses[node.id] === "SKIPPED").length === 1 ? "" : "s"}
+      </p>
+      <div className="flex flex-wrap gap-1" aria-label="Estado de los nodos">
+        {executed.map((node) => (
+          <span
+            key={node.id}
+            className={
+              statuses[node.id] === "SUCCESS"
+                ? "rounded bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-400"
+                : statuses[node.id] === "ERROR"
+                  ? "rounded bg-red-500/10 px-1.5 py-0.5 text-[10px] font-medium text-red-700 dark:text-red-400"
+                  : "rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground"
+            }
+          >
+            {String(node.data.label)} · {STATUS_LABELS[statuses[node.id]]}
+          </span>
+        ))}
+      </div>
+      {finalOutput && results[finalOutput.id] && (
+        <div className="space-y-1">
+          <span className="text-[11px] font-medium text-muted-foreground">Resultado final</span>
+          <JsonView value={results[finalOutput.id].output} />
+        </div>
+      )}
+    </section>
+  );
+}
+
 export function InspectorPanel({ selected }: { selected: { id: string; type: string; label: string; config: Record<string, unknown> } | null }) {
   const updateNodeConfig = useEditorStore((s) => s.updateNodeConfig);
   const updateNodeLabel = useEditorStore((s) => s.updateNodeLabel);
@@ -40,10 +88,11 @@ export function InspectorPanel({ selected }: { selected: { id: string; type: str
   };
 
   return (
-    <aside className="flex w-80 shrink-0 flex-col border-l border-border bg-background">
+    <aside className="flex min-h-[360px] w-full shrink-0 flex-col border-t border-border bg-background lg:min-h-0 lg:w-80 lg:border-t-0 lg:border-l">
       <div className="border-b border-border px-4 py-3">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Inspector</h2>
       </div>
+      <ExecutionSummary />
       <div className="flex-1 overflow-y-auto p-4">
         {!selected ? (
           <p className="text-xs text-muted-foreground">
@@ -86,9 +135,9 @@ export function InspectorPanel({ selected }: { selected: { id: string; type: str
             {result && (
               <>
                 <Separator />
-                <div className="space-y-2">
+                <details className="space-y-2" open={status === "ERROR"}>
                   <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-semibold">Resultado de ejecución</h3>
+                    <summary className="cursor-pointer text-xs font-semibold">Detalles del nodo</summary>
                     <span
                       className={
                         status === "SUCCESS"
@@ -111,7 +160,7 @@ export function InspectorPanel({ selected }: { selected: { id: string; type: str
                     <span className="text-[11px] font-medium text-muted-foreground">Output</span>
                     <JsonView value={result.output} />
                   </div>
-                </div>
+                </details>
               </>
             )}
           </div>

@@ -1,0 +1,31 @@
+.react-flow__minimap {
+  background: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.react-flow__controls {
+  overflow: hidden;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  box-shadow: none;
+}
+
+.react-flow .react-flow__controls-button {
+  background: hsl(var(--background)) !important;
+  border-bottom-color: hsl(var(--border)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.react-flow .react-flow__controls-button:hover {
+  background: hsl(var(--muted)) !important;
+}
+
+/* Custom nodes use React Flow's input/output type names and inherit its defaults. */
+.react-flow .react-flow__node-input,
+.react-flow .react-flow__node-output {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+}

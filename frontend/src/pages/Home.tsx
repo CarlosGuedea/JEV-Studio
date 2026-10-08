@@ -41,9 +41,9 @@ export default function Home() {
 
   return (
     <div className="flex h-screen flex-col bg-background text-foreground">
-      <div className="flex items-center gap-2 border-b border-border bg-background px-4 py-1.5">
+      <div className="flex items-center gap-2 border-b border-border bg-background px-3 py-1.5 sm:px-4">
         <WorkflowManager />
-        <span className="text-[11px] text-muted-foreground">
+        <span className="hidden text-[11px] text-muted-foreground md:inline">
           Arrastra nodos desde la izquierda · conecta desde el punto derecho de un nodo · elige la rama en el selector de la flecha
         </span>
       </div>
@@ -53,7 +53,7 @@ export default function Home() {
           {runError}
         </div>
       )}
-      <div className="flex flex-1 overflow-x-auto overflow-y-hidden">
+      <main className="flex min-h-0 flex-1 flex-col overflow-y-auto lg:flex-row lg:overflow-hidden">
         <NodeSidebar />
         <CanvasArea />
         <InspectorPanel
@@ -68,7 +68,7 @@ export default function Home() {
               : null
           }
         />
-      </div>
+      </main>
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { LogIn, Brain, Sparkles, Code2, Globe, GitFork, LogOut } from "lucide-re
 import type { NodeType } from "@/types/workflow";
 import { NODE_LABELS } from "@/types/workflow";
 import { cn } from "@/lib/utils";
+import { toFlowNode, useEditorStore } from "@/stores/editorStore";
 
 const PALETTE: { type: NodeType; icon: React.ReactNode; description: string; tone: string }[] = [
   { type: "input", icon: <LogIn className="h-4 w-4 text-sky-500" />, description: "Entrada inicial del usuario", tone: "hover:border-sky-400" },
@@ -14,23 +15,36 @@ const PALETTE: { type: NodeType; icon: React.ReactNode; description: string; ton
 ];
 
 export function NodeSidebar() {
+  const addWithKeyboard = (type: NodeType, index: number) => {
+    useEditorStore.getState().addNode(toFlowNode(type, { x: 80 + index * 28, y: 80 + index * 28 }));
+  };
+
   return (
-    <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-background">
-      <div className="border-b border-border px-4 py-3">
+    <aside className="flex w-full shrink-0 flex-col border-b border-border bg-background lg:w-60 lg:border-r lg:border-b-0">
+      <div className="border-b border-border px-4 py-2.5 lg:py-3">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Nodos</h2>
-        <p className="mt-0.5 text-[11px] text-muted-foreground">Arrastra al canvas</p>
+        <p className="mt-0.5 text-[11px] text-muted-foreground">Arrastra al canvas o usa Intro</p>
       </div>
-      <div className="flex-1 space-y-2 overflow-y-auto p-3">
-        {PALETTE.map((item) => (
+      <div className="flex gap-2 overflow-x-auto p-3 lg:flex-1 lg:flex-col lg:overflow-y-auto">
+        {PALETTE.map((item, index) => (
           <div
             key={item.type}
             draggable
+            role="button"
+            tabIndex={0}
+            aria-label={`${NODE_LABELS[item.type]}. Arrastra al canvas o pulsa Intro para añadirlo.`}
             onDragStart={(e) => {
               e.dataTransfer.setData("application/jev-node", item.type);
               e.dataTransfer.effectAllowed = "move";
             }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                addWithKeyboard(item.type, index);
+              }
+            }}
             className={cn(
-              "cursor-grab rounded-lg border border-border bg-card p-2.5 shadow-sm transition-colors active:cursor-grabbing",
+              "min-w-48 cursor-grab rounded-lg border border-border bg-card p-2.5 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring active:cursor-grabbing lg:min-w-0",
               item.tone
             )}
           >

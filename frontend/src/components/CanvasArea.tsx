@@ -15,6 +15,7 @@ import {
   type NodeTypes,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+import "./CanvasArea.css";
 import { useEditorStore, toFlowNode, nextId } from "@/stores/editorStore";
 import { NODE_COMPONENTS } from "@/nodes";
 import { BranchEdge } from "@/nodes/BranchEdge";
@@ -29,7 +30,7 @@ function FitViewOnLoad() {
   const prev = useRef(0);
   useEffect(() => {
     if (count > 0 && prev.current === 0) {
-      setTimeout(() => fitView({ padding: 0.25, duration: 300 }), 60);
+      setTimeout(() => fitView({ padding: 0.1, maxZoom: 0.9, duration: 300 }), 60);
     }
     prev.current = count;
   }, [count, fitView]);
@@ -113,7 +114,7 @@ function CanvasInner() {
   });
 
   return (
-    <div ref={wrapper} className="min-w-[540px] flex-1" onDrop={onDrop} onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; }}>
+    <div ref={wrapper} className="min-h-[52vh] w-full min-w-0 flex-none lg:min-h-0 lg:min-w-[540px] lg:flex-1" onDrop={onDrop} onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "move"; }}>
       <ReactFlow
         nodes={nodes}
         edges={styledEdges}
@@ -151,6 +152,7 @@ function CanvasInner() {
         edgeTypes={edgeTypes}
         deleteKeyCode={["Backspace", "Delete"]}
         fitView
+        fitViewOptions={{ padding: 0.1, maxZoom: 0.9 }}
         minZoom={0.2}
         maxZoom={2}
         proOptions={{ hideAttribution: true }}
@@ -158,7 +160,14 @@ function CanvasInner() {
         <FitViewOnLoad />
         <Background variant={BackgroundVariant.Dots} gap={20} size={1.5} />
         <Controls position="bottom-left" />
-        <MiniMap position="bottom-right" pannable zoomable className="!h-32 !w-44" />
+        <MiniMap
+          position="bottom-right"
+          pannable
+          zoomable
+          bgColor="hsl(var(--muted))"
+          maskColor="hsl(var(--background) / 0.7)"
+          className="!h-28 !w-36 sm:!h-32 sm:!w-44"
+        />
         <Panel position="top-left">
           <div className="rounded-md border border-border bg-background/80 px-2 py-1 text-[11px] text-muted-foreground backdrop-blur">
             {running ? "Ejecutando workflow…" : "Arrastra desde el punto derecho de un nodo para conectar · elige la rama en el selector de la flecha"}
