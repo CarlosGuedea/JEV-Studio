@@ -18,6 +18,7 @@ from abc import ABC, abstractmethod
 from typing import Any
 
 from ..schemas import (
+    AutomationConfig,
     ConditionConfig,
     HttpRequestConfig,
     InputConfig,
@@ -68,6 +69,15 @@ class InputExecutor(NodeExecutor):
             "message": cfg.message,
             "type": type(value).__name__,
         }
+
+
+class AutomationExecutor(NodeExecutor):
+    """Automation is workflow metadata; the runner never starts from this node."""
+    node_type = "automation"
+
+    def execute(self, ctx: ExecutionContext) -> dict[str, Any]:
+        cfg: AutomationConfig = ctx.config
+        return {"active": cfg.active, "interval_seconds": cfg.interval_seconds, "cron": cfg.cron}
 
 
 class JevDecisionExecutor(NodeExecutor):
@@ -230,6 +240,7 @@ def render_template(value: Any, ctx: ExecutionContext) -> Any:
 
 
 _REGISTRY: dict[str, NodeExecutor] = {
+    "automation": AutomationExecutor(),
     "input": InputExecutor(),
     "jev_decision": JevDecisionExecutor(),
     "llm": LLMExecutor(),

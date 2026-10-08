@@ -1,5 +1,6 @@
 """Jev Studio — FastAPI application entrypoint."""
-from contextlib import asynccontextmanager
+import asyncio
+from contextlib import asynccontextmanager, suppress
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,7 +17,15 @@ async def lifespan(app: FastAPI):
 
     with SessionLocal() as db:
         seed_demo(db)
-    yield
+    from .services.scheduler import run_scheduler
+
+    scheduler_task = asyncio.create_task(run_scheduler())
+    try:
+        yield
+    finally:
+        scheduler_task.cancel()
+        with suppress(asyncio.CancelledError):
+            await scheduler_task
 
 
 def create_app() -> FastAPI:

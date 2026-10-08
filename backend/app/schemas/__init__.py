@@ -1,6 +1,7 @@
 """Re-export the workflow schemas from the package root."""
 from .workflow import (  # noqa: F401
     ConditionConfig,
+    AutomationConfig,
     ExecuteRequest,
     ExecutionResponse,
     ExecutionStepResult,
@@ -20,6 +21,7 @@ from .workflow import (  # noqa: F401
     WorkflowEdge,
     WorkflowNode,
     WorkflowResponse,
+    WorkflowRuntimeUpdate,
     WorkflowSummary,
     WorkflowUpdate,
 )

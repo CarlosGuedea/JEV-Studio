@@ -89,3 +89,12 @@ def test_invalid_config_rejected():
     bad.nodes[1].config = {"options": "not-a-list"}
     with pytest.raises(GraphValidationError):
         validate_graph(bad)
+
+
+def test_automation_node_cannot_be_connected_or_duplicated():
+    connected = make(
+        [n("auto", "automation"), n("in", "input"), n("out", "output")],
+        [{"id": "e1", "source": "auto", "target": "in"}, {"id": "e2", "source": "in", "target": "out"}],
+    )
+    with pytest.raises(GraphValidationError, match="Automation"):
+        validate_graph(connected)

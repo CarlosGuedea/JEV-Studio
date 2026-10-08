@@ -1,10 +1,11 @@
-import { LogIn, Brain, Sparkles, Code2, Globe, GitFork, LogOut } from "lucide-react";
+import { LogIn, Brain, Sparkles, Code2, Globe, GitFork, LogOut, CalendarClock } from "lucide-react";
 import type { NodeType } from "@/types/workflow";
 import { NODE_LABELS } from "@/types/workflow";
 import { cn } from "@/lib/utils";
 import { toFlowNode, useEditorStore } from "@/stores/editorStore";
 
 const PALETTE: { type: NodeType; icon: React.ReactNode; description: string; tone: string }[] = [
+  { type: "automation", icon: <CalendarClock className="h-4 w-4 text-violet-500" />, description: "Webhook, intervalo y calendario cron", tone: "hover:border-violet-400" },
   { type: "input", icon: <LogIn className="h-4 w-4 text-sky-500" />, description: "Entrada inicial del usuario", tone: "hover:border-sky-400" },
   { type: "jev_decision", icon: <Brain className="h-4 w-4 text-violet-500" />, description: "Decisión con Jev", tone: "hover:border-violet-400" },
   { type: "llm", icon: <Sparkles className="h-4 w-4 text-amber-500" />, description: "Llamada a modelo de lenguaje", tone: "hover:border-amber-400" },

@@ -22,23 +22,6 @@ export default function Home() {
     document.documentElement.classList.toggle("dark", dark);
   }, [dark]);
 
-  // Load the demo workflow on first paint so the canvas is never empty.
-  useEffect(() => {
-    (async () => {
-      const s = useEditorStore.getState();
-      if (s.nodes.length > 0) return;
-      try {
-        const items = await api.listWorkflows();
-        if (items.length > 0) {
-          const wf = await api.getWorkflow(items[0].id);
-          s.loadDefinition(wf.definition, wf.id);
-        }
-      } catch {
-        /* backend offline — canvas stays empty */
-      }
-    })();
-  }, []);
-
   return (
     <div className="flex h-screen flex-col bg-background text-foreground">
       <div className="flex items-center gap-2 border-b border-border bg-background px-3 py-1.5 sm:px-4">

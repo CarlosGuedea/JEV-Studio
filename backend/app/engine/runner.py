@@ -107,7 +107,8 @@ def run_workflow(defn: WorkflowDefinition, *, user_input: Any = None,
     if user_input is not None:
         run_vars["input"] = user_input
 
-    records = {n.id: StepRecord(n) for n in defn.nodes}
+    # Automation is workflow-level trigger metadata, not an executable step.
+    records = {n.id: StepRecord(n) for n in defn.nodes if n.type != NodeType.AUTOMATION}
     outputs: dict[str, Any] = {}
     active_edges: set[str] = set()   # edge ids that carried activation
     completed: set[str] = set()
@@ -189,7 +190,7 @@ def run_workflow(defn: WorkflowDefinition, *, user_input: Any = None,
     outs = [r.output for r in records.values()
             if r.node_type == NodeType.OUTPUT.value and r.status == StepStatus.SUCCESS]
     result.output = outs[0] if len(outs) == 1 else outs
-    result.steps = [records[nid] for nid in order]
+    result.steps = [records[nid] for nid in order if nid in records]
     result.status = StepStatus.SUCCESS if not any(
         s.status == StepStatus.ERROR for s in result.steps
     ) else StepStatus.ERROR

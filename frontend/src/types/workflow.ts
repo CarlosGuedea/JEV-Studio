@@ -1,6 +1,7 @@
 // Workflow JSON model — mirrors backend/app/schemas/workflow.py
 
 export type NodeType =
+  | "automation"
   | "input"
   | "jev_decision"
   | "llm"
@@ -50,6 +51,10 @@ export interface WorkflowSummary {
   description: string;
   node_count: number;
   updated_at: string;
+  active: boolean;
+  webhook_token: string;
+  schedule_interval_seconds: number | null;
+  schedule_cron: string | null;
 }
 
 export interface WorkflowResponse {
@@ -59,6 +64,11 @@ export interface WorkflowResponse {
   definition: WorkflowDefinition;
   created_at: string;
   updated_at: string;
+  active: boolean;
+  webhook_token: string;
+  schedule_interval_seconds: number | null;
+  schedule_cron: string | null;
+  last_scheduled_at: string | null;
 }
 
 export interface ExecutionStepResult {
@@ -84,6 +94,7 @@ export interface ExecutionResponse {
   started_at: string;
   ended_at: string | null;
   duration_ms: number | null;
+  trigger: "manual" | "webhook" | "schedule";
   steps: ExecutionStepResult[];
 }
 
@@ -96,6 +107,7 @@ export interface ProvidersInfo {
 // ── Default configs per node type ─────────────────────────────────────
 
 export const DEFAULT_CONFIGS: Record<NodeType, Record<string, unknown>> = {
+  automation: { active: true, interval_seconds: null, cron: "" },
   input: { message: "Escribe tu solicitud…" },
   jev_decision: {
     name: "Jev Decision",
@@ -128,6 +140,7 @@ export const DEFAULT_CONFIGS: Record<NodeType, Record<string, unknown>> = {
 };
 
 export const NODE_LABELS: Record<NodeType, string> = {
+  automation: "Automatización",
   input: "Input",
   jev_decision: "Jev Decision",
   llm: "LLM",

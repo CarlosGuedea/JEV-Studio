@@ -44,6 +44,11 @@ export const api = {
     request<void>(`/api/workflows/${id}`, { method: "DELETE" }),
   duplicateWorkflow: (id: number) =>
     request<{ id: number }>(`/api/workflows/${id}/duplicate`, { method: "POST" }),
+  updateWorkflowRuntime: (id: number, runtime: { active?: boolean; schedule_interval_seconds?: number | null; schedule_cron?: string | null }) =>
+    request<{ id: number; active: boolean; webhook_token: string; schedule_interval_seconds: number | null; schedule_cron: string | null }>(`/api/workflows/${id}/runtime`, {
+      method: "PATCH",
+      body: JSON.stringify(runtime),
+    }),
 
   execute: (id: number, input: unknown, variables: Record<string, unknown>) =>
     request<ExecutionResponse>(`/api/workflows/${id}/execute`, {
@@ -52,4 +57,6 @@ export const api = {
     }),
   getExecution: (id: number) =>
     request<ExecutionResponse>(`/api/executions/${id}`),
+  listExecutions: (workflowId: number) =>
+    request<ExecutionResponse[]>(`/api/workflows/${workflowId}/executions`),
 };

@@ -12,6 +12,7 @@ Editor visual para crear, conectar y ejecutar flujos de inteligencia artificial 
 - **Motor de ejecución real** en el backend: validación del grafo, orden topológico, ramificaciones por decisión, detección de errores, límite anti-ciclos y registro de cada paso.
 - **Nodos**: `Input`, `Jev Decision`, `LLM`, `Python` (seguro), `HTTP Request`, `Condition`, `Output`.
 - **Integración con Jev**: `TypeSafeJevProvider` contra la API oficial (`POST /v1/systemone`) y `MockJevProvider` claramente etiquetado como simulación cuando no hay API key.
+- **Automatización multi-workflow**: activa/pausa cada flujo, dispara por webhook, intervalo o calendario cron y conserva un historial de ejecuciones en segundo plano.
 - **Persistencia** en SQLite (Workflow, Node, Edge, Execution, ExecutionStep).
 - **API REST** completa + pruebas (`pytest`), Dockerfiles y `docker-compose.yml`.
 
@@ -94,10 +95,15 @@ Toda la configuración es por variables de entorno (ver `.env.example`):
 | PUT | `/api/workflows/{id}` | Actualizar |
 | DELETE | `/api/workflows/{id}` | Eliminar |
 | POST | `/api/workflows/{id}/duplicate` | Duplicar |
-| POST | `/api/workflows/{id}/execute` | Ejecutar (`{input, variables}`) |
+| POST | `/api/workflows/{id}/execute` | Encolar una ejecución manual (`{input, variables}`) |
+| PATCH | `/api/workflows/{id}/runtime` | Activar/pausar y configurar `schedule_interval_seconds` (60–604800) o `schedule_cron` |
+| GET | `/api/workflows/{id}/executions` | Historial de ejecuciones |
 | GET | `/api/executions/{id}` | Estado de una ejecución |
 | GET | `/api/executions/{id}/steps` | Pasos de una ejecución |
+| GET/POST/etc. | `/api/webhooks/{token}` | Disparar un workflow activo de forma asíncrona |
 | GET | `/api/providers` | Proveedores activos (Jev real vs mock) |
+
+Cada workflow tiene un token de webhook único, visible desde **Abrir → Automatización e historial**. Los webhooks responden inmediatamente con `202 Accepted` y el ID de la ejecución; consulta después `GET /api/executions/{id}`. La programación admite intervalos (en segundos) o cron de cinco campos en UTC (`minuto hora día-del-mes mes día-de-semana`), por ejemplo `0 9 * * 1-5`. El proceso del backend debe permanecer en ejecución para despachar los horarios.
 
 ## Cómo crear un nodo nuevo
 

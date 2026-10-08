@@ -106,6 +106,16 @@ def test_unreachable_node_is_skipped():
     assert statuses(result)["lonely"] == "SKIPPED"
 
 
+def test_automation_node_is_trigger_metadata_not_an_execution_step():
+    wf = make(
+        [n("auto", "automation", active=True, cron="0 9 * * 1-5"), n("in", "input"), n("out", "output")],
+        [{"id": "e1", "source": "in", "target": "out"}],
+    )
+    result = run_workflow(wf, user_input="x")
+    assert result.status.value == "SUCCESS"
+    assert statuses(result) == {"in": "SUCCESS", "out": "SUCCESS"}
+
+
 def test_demo_workflow_executes():
     from app.services.demo import demo_definition
     result = run_workflow(demo_definition(), user_input="cuenta palabras con python")

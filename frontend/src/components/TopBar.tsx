@@ -33,7 +33,8 @@ export function RunDialog({ providers }: { providers: ProvidersInfo | null }) {
         }
         s.markSaved(id);
       }
-      const ex = await api.execute(id, input || null, {});
+      const queued = await api.execute(id, input || null, {});
+      const ex = await waitForExecution(queued.id);
       useEditorStore.getState().applyExecution(ex);
     } catch (err) {
       useEditorStore.getState().setRunning(false);
@@ -67,6 +68,15 @@ export function RunDialog({ providers }: { providers: ProvidersInfo | null }) {
       </DialogContent>
     </Dialog>
   );
+}
+
+async function waitForExecution(executionId: number) {
+  for (let attempt = 0; attempt < 240; attempt += 1) {
+    const execution = await api.getExecution(executionId);
+    if (execution.status !== "QUEUED" && execution.status !== "RUNNING") return execution;
+    await new Promise((resolve) => window.setTimeout(resolve, 500));
+  }
+  throw new Error("La ejecución tardó demasiado. Consulta el historial para ver su estado.");
 }
 
 export function TopBar({ providers, dark, onToggleDark }: { providers: ProvidersInfo | null; dark: boolean; onToggleDark: () => void }) {

@@ -6,7 +6,7 @@ Execution ── ExecutionStep
 """
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..db import Base
@@ -25,6 +25,11 @@ class Workflow(Base):
     config: Mapped[dict] = mapped_column(JSON, default=dict)  # WorkflowConfig + variables
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow, onupdate=_utcnow)
+    active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    webhook_token: Mapped[str] = mapped_column(String(64), nullable=False, unique=True, index=True)
+    schedule_interval_seconds: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    schedule_cron: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    last_scheduled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     nodes: Mapped[list["Node"]] = relationship(
         back_populates="workflow", cascade="all, delete-orphan", order_by="Node.id"
@@ -74,6 +79,7 @@ class Execution(Base):
     started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     duration_ms: Mapped[float | None] = mapped_column(Float, nullable=True)
+    trigger: Mapped[str] = mapped_column(String(16), nullable=False, default="manual")
 
     workflow: Mapped[Workflow] = relationship(back_populates="executions")
     steps: Mapped[list["ExecutionStep"]] = relationship(

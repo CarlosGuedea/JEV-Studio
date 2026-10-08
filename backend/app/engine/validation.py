@@ -53,6 +53,14 @@ def validate_graph(defn: WorkflowDefinition) -> list[str]:
     if not any(n.type == NodeType.OUTPUT for n in defn.nodes):
         errors.append("The workflow needs at least one Output node")
 
+    automation = [n for n in defn.nodes if n.type == NodeType.AUTOMATION]
+    if len(automation) > 1:
+        errors.append("A workflow can have at most one Automation node")
+    automation_ids = {n.id for n in automation}
+    for edge in defn.edges:
+        if edge.source in automation_ids or edge.target in automation_ids:
+            errors.append("Automation is a trigger configuration node and cannot have connections")
+
     order = topological_order(defn)  # raises on cycles
     if errors:
         raise GraphValidationError(errors)

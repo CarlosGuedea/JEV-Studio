@@ -20,10 +20,11 @@ interface ShellProps {
   subtitle?: string;
   badge?: string;
   badgeTone?: "amber" | "violet" | "sky" | "rose" | "emerald" | "slate";
+  connectable?: boolean;
   children?: ReactNode;
 }
 
-export function NodeShell({ id, icon, title, subtitle, badge, badgeTone = "slate", children }: ShellProps) {
+export function NodeShell({ id, icon, title, subtitle, badge, badgeTone = "slate", connectable = true, children }: ShellProps) {
   const status = useEditorStore((s) => s.nodeStatuses[id]) ?? "IDLE";
 
   return (
@@ -34,12 +35,12 @@ export function NodeShell({ id, icon, title, subtitle, badge, badgeTone = "slate
         STATUS_STYLES[status]
       )}
     >
-      <Handle
+      {connectable && <Handle
         id="in"
         type="target"
         position={Position.Left}
         className="!h-2.5 !w-2.5 !border-2 !border-background !bg-muted-foreground"
-      />
+      />}
 
       <div className="flex items-center gap-2 border-b border-border px-3 py-2">
         <span className="flex h-7 w-7 items-center justify-center rounded-md bg-muted">{icon}</span>
@@ -66,12 +67,12 @@ export function NodeShell({ id, icon, title, subtitle, badge, badgeTone = "slate
 
       {children && <div className="px-3 py-2 text-xs text-muted-foreground">{children}</div>}
 
-      <Handle
+      {connectable && <Handle
         id="out"
         type="source"
         position={Position.Right}
         className="!h-2.5 !w-2.5 !border-2 !border-background !bg-muted-foreground"
-      />
+      />}
     </div>
   );
 }
@@ -84,7 +85,28 @@ function cfg(props: NodeProps<FlowNode>) {
 
 // ── Individual node types ─────────────────────────────────────────────
 
-import { LogIn, Brain, Sparkles, Code2, Globe, GitFork, LogOut } from "lucide-react";
+import { LogIn, Brain, Sparkles, Code2, Globe, GitFork, LogOut, CalendarClock } from "lucide-react";
+
+export const AutomationNode = memo(function AutomationNode(props: NodeProps<FlowNode>) {
+  const c = cfg(props);
+  const active = c.active !== false;
+  const cron = String(c.cron ?? "").trim();
+  const interval = Number(c.interval_seconds ?? 0);
+  const schedule = cron ? `Cron UTC · ${cron}` : interval ? `Cada ${interval} s` : "Webhook";
+  return (
+    <NodeShell
+      id={props.id}
+      icon={<CalendarClock className="h-4 w-4 text-violet-500" />}
+      title={props.data.label}
+      subtitle={schedule}
+      badge={active ? "Activa" : "Pausada"}
+      badgeTone={active ? "violet" : "slate"}
+      connectable={false}
+    >
+      <div>{active ? "Webhook habilitado" : "Los disparadores están pausados"}</div>
+    </NodeShell>
+  );
+});
 
 export const InputNode = memo(function InputNode(props: NodeProps<FlowNode>) {
   const c = cfg(props);
@@ -170,7 +192,10 @@ export const OutputNode = memo(function OutputNode(props: NodeProps<FlowNode>) {
   );
 });
 
+// React Flow consumes this component map; it is intentionally exported beside its nodes.
+// eslint-disable-next-line react-refresh/only-export-components
 export const NODE_COMPONENTS = {
+  automation: AutomationNode,
   input: InputNode,
   jev_decision: JevNode,
   llm: LLMNode,

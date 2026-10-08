@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field, field_validator
 
 
 class NodeType(str, Enum):
+    AUTOMATION = "automation"
     INPUT = "input"
     JEV_DECISION = "jev_decision"
     LLM = "llm"
@@ -38,6 +39,22 @@ class Position(BaseModel):
 
 class InputConfig(BaseModel):
     message: str = "Escribe tu solicitud…"
+
+
+class AutomationConfig(BaseModel):
+    """Metadata-only node that configures workflow-level triggers."""
+    active: bool = True
+    interval_seconds: int | None = Field(default=None, ge=60, le=604_800)
+    cron: str = ""
+
+    @field_validator("cron")
+    @classmethod
+    def validate_cron(cls, value: str) -> str:
+        if not value.strip():
+            return ""
+        from ..services.cron import validate_cron_expression
+
+        return validate_cron_expression(value)
 
 
 class JevDecisionConfig(BaseModel):
@@ -85,7 +102,7 @@ class OutputConfig(BaseModel):
 
 
 NodeConfig = (
-    InputConfig | JevDecisionConfig | LLMConfig | PythonConfig
+    AutomationConfig | InputConfig | JevDecisionConfig | LLMConfig | PythonConfig
     | HttpRequestConfig | ConditionConfig | OutputConfig
 )
 
@@ -102,6 +119,7 @@ class WorkflowNode(BaseModel):
 
     def parsed_config(self) -> NodeConfig:
         cls = {
+            NodeType.AUTOMATION: AutomationConfig,
             NodeType.INPUT: InputConfig,
             NodeType.JEV_DECISION: JevDecisionConfig,
             NodeType.LLM: LLMConfig,
@@ -152,6 +170,10 @@ class WorkflowSummary(BaseModel):
     description: str
     node_count: int
     updated_at: str
+    active: bool = True
+    webhook_token: str = ""
+    schedule_interval_seconds: int | None = None
+    schedule_cron: str | None = None
 
     model_config = {"from_attributes": True}
 
@@ -163,6 +185,26 @@ class WorkflowResponse(BaseModel):
     definition: WorkflowDefinition
     created_at: str
     updated_at: str
+    active: bool = True
+    webhook_token: str = ""
+    schedule_interval_seconds: int | None = None
+    schedule_cron: str | None = None
+    last_scheduled_at: str | None = None
+
+
+class WorkflowRuntimeUpdate(BaseModel):
+    active: bool | None = None
+    schedule_interval_seconds: int | None = Field(default=None, ge=60, le=604_800)
+    schedule_cron: str | None = Field(default=None, max_length=128)
+
+    @field_validator("schedule_cron")
+    @classmethod
+    def validate_cron(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        from ..services.cron import validate_cron_expression
+
+        return validate_cron_expression(value)
 
 
 class ExecuteRequest(BaseModel):
@@ -201,6 +243,7 @@ class ExecutionResponse(BaseModel):
     started_at: str
     ended_at: str | None = None
     duration_ms: float | None = None
+    trigger: str = "manual"
     steps: list[ExecutionStepResult]
 
 

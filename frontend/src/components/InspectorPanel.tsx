@@ -175,6 +175,34 @@ function NodeFields({ type, config, onChange }: { type: NodeType; config: Record
   const num = (k: string) => Number(config[k] ?? 0);
 
   switch (type) {
+    case "automation":
+      return (
+        <>
+          <Field label="Estado">
+            <select value={config.active === false ? "paused" : "active"} onChange={(e) => onChange("active", e.target.value === "active")} className="h-8 w-full rounded-md border bg-background px-2 text-xs">
+              <option value="active">Activa: acepta webhook y horarios</option>
+              <option value="paused">Pausada: detiene todos los disparadores</option>
+            </select>
+          </Field>
+          <Field label="Intervalo (segundos)">
+            <Input
+              type="number"
+              min="60"
+              max="604800"
+              value={config.interval_seconds == null ? "" : String(config.interval_seconds)}
+              onChange={(e) => onChange("interval_seconds", e.target.value === "" ? null : Number(e.target.value))}
+              placeholder="Sin intervalo"
+              className="h-8 text-xs"
+            />
+          </Field>
+          <Field label="Calendario cron (UTC)">
+            <Input value={str("cron")} onChange={(e) => onChange("cron", e.target.value)} placeholder="0 9 * * 1-5" className="h-8 font-mono text-xs" />
+          </Field>
+          <p className="text-[11px] leading-snug text-muted-foreground">
+            El webhook queda disponible al guardar el workflow. Cron tiene prioridad sobre el intervalo; deja ambos vacíos para usar solo webhook.
+          </p>
+        </>
+      );
     case "input":
       return (
         <div className="space-y-1.5">
