@@ -1,0 +1,24 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "8155:8155"
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: sqlite:////data/jevstudio.db
+      CORS_ORIGINS: "http://localhost:7100,http://127.0.0.1:7100"
+    volumes:
+      - jev-data:/data
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "7100:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  jev-data:

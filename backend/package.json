@@ -1,0 +1,8 @@
+{
+  "name": "jev-studio-backend",
+  "private": true,
+  "scripts": {
+    "dev": "uvicorn app.main:app --reload --port 8155",
+    "test": "python3 -m pytest tests -q"
+  }
+}
